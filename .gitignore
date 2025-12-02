@@ -1,0 +1,16 @@
+install_manifest.txt
+*.swp
+*.o
+*.a
+*.log
+bin/
+test/
+build/
+build-*/
+.cache/
+.lvimrc
+config-debug
+wayland-*-protocol.*
+/subprojects/*
+!/subprojects/packagefiles
+!/subprojects/*.wrap
