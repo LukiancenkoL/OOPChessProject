@@ -1,2 +1,3 @@
-OOPChessProject
+## OOPChessProject
+===
 Реалізація гри шахи, з використанням бібліотеки SDL.
