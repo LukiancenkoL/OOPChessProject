@@ -41,7 +41,7 @@ add_project_arguments(
 			'-Walloca',
 			'-Wvla',
 			'-Wformat=2',
-			'-Wold-style-cast',
+			#'-Wold-style-cast',
 			'-Wshadow',
 
 			#'-fanalyzer',
@@ -69,13 +69,14 @@ src = files(
 
 sdl3_dep = dependency('sdl3')
 sdl3_image_dep = dependency('sdl3_image', default_options: ['werror=false'])
-sdl3_ttf_dep   = dependency('sdl3_ttf', default_options: ['werror=false'])
+sdl3_ttf_dep = dependency('sdl3_ttf', default_options: ['werror=false'])
+imgui_dep = dependency('imgui')
 #sdl2_mixer_dep = dependency('SDL2_mixer')
 executable(
 	'sem3lab3',
 	src,
 	include_directories: [include],
-	dependencies: [sdl3_dep, sdl3_image_dep, sdl3_ttf_dep],
+	dependencies: [sdl3_dep, sdl3_image_dep, sdl3_ttf_dep, imgui_dep],
 	#link_with: [libs],
 	#install: true
 )
