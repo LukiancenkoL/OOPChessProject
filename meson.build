@@ -1,9 +1,9 @@
 project(
-	'sem3lab3',
+	'chess',
 	'cpp',
 	version: '0.1',
 	license: 'MIT',
-	meson_version: '>=1.4',
+	meson_version: '>=1.7',
 	default_options: [
 		'cpp_std=c++23',
 		'warning_level=3',
@@ -14,35 +14,50 @@ project(
 add_project_arguments(
 	[
 		'-D_POSIX_C_SOURCE=200809L',
+		# wayland
 		#'-DWLR_USE_UNSTABLE',
+		'-D_XOPEN_SOURCE=700',
+		# random, srandom
+		'-D_DEFAULT_SOURCE',
 	],
 	language: 'cpp',
 )
 
-cc = meson.get_compiler('cpp')
+if get_option('optimization') != '0'
+	add_project_arguments(
+		[
+			# requires compiling with optimization
+			#'-D_FORTIFY_SOURCE=3',
+			'-fhardened',
+		],
+		language: 'cpp',
+	)
+endif
 
+cc = meson.get_compiler('cpp')
 add_project_arguments(
 	cc.get_supported_arguments(
 		[
 			'-Wundef',
 			'-Wlogical-op',
-			'-Wmissing-include-dirs',
-			'-Wold-style-definition',
 			'-Wpointer-arith',
 			'-Winit-self',
 			'-Wfloat-equal',
-			'-Wstrict-prototypes',
 			'-Wredundant-decls',
 			'-Wimplicit-fallthrough',
 			'-Wendif-labels',
-			#'-Wstrict-aliasing=2',
 			'-Woverflow',
-			'-Wmissing-prototypes',
 			'-Walloca',
 			'-Wvla',
 			'-Wformat=2',
+			#'-Wmissing-include-dirs',
+
 			#'-Wold-style-cast',
 			'-Wshadow',
+
+			'-Wduplicated-cond',
+			#'-Wconversion',
+			'-Wswitch-default',
 
 			#'-fanalyzer',
 			#'-fno-math-errno',
@@ -63,20 +78,24 @@ include = include_directories('include')
 
 src = files(
 	'src/main.cpp',
+	'src/app.cpp',
 )
 
 #subdir('src')
 
-sdl3_dep = dependency('sdl3')
-sdl3_image_dep = dependency('sdl3_image', default_options: ['werror=false'])
-sdl3_ttf_dep = dependency('sdl3_ttf', default_options: ['werror=false'])
-imgui_dep = dependency('imgui')
-#sdl2_mixer_dep = dependency('SDL2_mixer')
+sdl3 = dependency('sdl3', default_options: ['werror=false'])
+#sdl3i_obj = subproject('sdl3_image')
+#sdl3i_dep = sdl3i_obj.get_variable(var_name)
+sdl3_image = dependency('sdl3_image', default_options: ['werror=false'])
+imgui = dependency('imgui')
+
+#my_lib = cc.find_library('libimgui', dirs: ['/home/misha/personal/chess-sdl3/subprojects/imgui-1.91.6/build/'])
+
 executable(
-	'sem3lab3',
+	'chess',
 	src,
 	include_directories: [include],
-	dependencies: [sdl3_dep, sdl3_image_dep, sdl3_ttf_dep, imgui_dep],
-	#link_with: [libs],
+	dependencies: [sdl3, sdl3_image, imgui],
+	#link_with: [my_lib],
 	#install: true
 )

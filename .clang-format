@@ -59,7 +59,7 @@ ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 8
 #Cpp11BracedListStyle: false
-DerivePointerAlignment: false
+DerivePointerAlignment: true
 DisableFormat: false
 ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: false
@@ -95,7 +95,7 @@ PenaltyBreakString: 10
 PenaltyExcessCharacter: 100
 PenaltyReturnTypeOnItsOwnLine: 60
 
-PointerAlignment: Right
+PointerAlignment: Left
 ReflowComments: false
 SortIncludes: false
 SortUsingDeclarations: false

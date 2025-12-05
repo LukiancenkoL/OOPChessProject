@@ -8,6 +8,17 @@ patch_url = https://wrapdb.mesonbuild.com/v2/sdl3_image_3.2.4-1/get_patch
 patch_hash = c4961a7d6cf7e3e291fc631b81cab25987648516b5a984e2ba7cc730fddd6804
 source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/sdl3_image_3.2.4-1/SDL3_image-3.2.4.tar.gz
 wrapdb_version = 3.2.4-1
+# fix linking error, some symbols are missing if built with meson
+method = cmake
+
+# will also work(probably)
+#[wrap-git]
+#url = https://github.com/libsdl-org/SDL_image.git
+#revision = 3.2.4
+#depth = 1
+#method = cmake
+
 
 [provide]
-sdl3_image = sdl3_image_dep
+# dep name must be SDL3_image-shared because "method = cmake"
+sdl3_image = SDL3_image_shared_dep
