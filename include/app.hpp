@@ -6,6 +6,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <array>
 #include <memory>
+//#include <vector>
 
 class App {
 public:
@@ -15,12 +16,13 @@ public:
 	App(App&& other) noexcept = delete;
 	App& operator=(App&& other) noexcept = delete;
 	~App();
-
-	void run(this const App& self);
+	void run();
 
 private:
-	void drawBoardBackground(this const App& self);
-	void renderBoard(this const App& self);
+	void drawBoardBackground() const;
+	void renderBoard() const;
+    void resetBoard();
+    void loadTextures();
 
 private:
 	static constexpr SDL_InitFlags init_flags{SDL_INIT_VIDEO};

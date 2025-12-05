@@ -1,11 +1,14 @@
 #pragma once
-
 #include "piece.hpp"
+
 class King : public Piece {
 public:
-	std::vector<BoardCoordinates> getPossibleMoves() const& override;
-	Color getColor() const& override;
-	BoardCoordinates getPosition() const& override;
+    King(Color c, BoardCoordinates pos);
+	std::vector<BoardCoordinates> getPossibleMoves(const BoardArray& board) const override;
+	Color getColor() const override;
+    PieceType getType() const override;
+	BoardCoordinates getPosition() const override;
+    void setPosition(BoardCoordinates new_pos) override;
 
 private:
 	BoardCoordinates position;

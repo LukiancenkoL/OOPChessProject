@@ -79,6 +79,8 @@ include = include_directories('include')
 src = files(
 	'src/main.cpp',
 	'src/app.cpp',
+	'src/pieces.cpp',
+	'src/stockfish.cpp', 
 )
 
 #subdir('src')
