@@ -9,6 +9,7 @@ public:
     PieceType getType() const override;
 	BoardCoordinates getPosition() const override;
     void setPosition(BoardCoordinates new_pos) override;
+    bool hasMoved() const override;
 
 private:
 	BoardCoordinates position;
@@ -16,4 +17,3 @@ private:
 	bool has_moved;
 	bool in_check;
 };
-

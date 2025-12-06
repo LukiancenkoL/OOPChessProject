@@ -2,10 +2,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-//#include <iostream>
 #include <cstring>
-//#include <array>
-//#include <print>
 
 Stockfish::Stockfish() {
 }
@@ -21,6 +18,7 @@ bool Stockfish::start(const std::string& path) {
     if (pid < 0) return false;
 
     if (pid == 0) {
+        // Child process
         dup2(pipe_in[0], STDIN_FILENO);
         dup2(pipe_out[1], STDOUT_FILENO);
         
@@ -52,7 +50,6 @@ void Stockfish::stop() {
 void Stockfish::setSkillLevel(int level) {
     if (level < 0) level = 0;
     if (level > 20) level = 20;
-    // This is the standard UCI command to weaken Stockfish
     writeCommand("setoption name Skill Level value " + std::to_string(level));
 }
 
@@ -82,27 +79,22 @@ std::optional<std::string> Stockfish::getBestMove() {
     
     if (bytes > 0) {
         buffer[bytes] = '\0';
-        accumulator += buffer; // Append new data to persistent buffer
+        accumulator += buffer;
     }
 
-    // Check if we have "bestmove" in the accumulated data
     size_t pos = accumulator.find("bestmove");
     if (pos != std::string::npos) {
-        size_t start = pos + 9; // Skip "bestmove "
+        size_t start = pos + 9;
         size_t end = accumulator.find(' ', start);
         if (end == std::string::npos) end = accumulator.find('\n', start);
         
-        // Extract the move string
         std::string moveStr = accumulator.substr(start, end - start);
         
-        // Clear buffer for next turn (important!)
-        accumulator.clear();
-        
-        // Trim any whitespace just in case
         if (!moveStr.empty() && (moveStr.back() == '\r' || moveStr.back() == '\n')) {
             moveStr.pop_back();
         }
         
+        accumulator.clear();
         return moveStr;
     }
     
