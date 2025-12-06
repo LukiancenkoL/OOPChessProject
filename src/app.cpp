@@ -20,6 +20,7 @@
 #include <string>
 #include <unordered_map>
 #include <algorithm>
+#include <vector>
 
 // Helper to get FEN character for piece
 char getPieceChar(const std::unique_ptr<Piece>& p) {
@@ -41,7 +42,7 @@ struct AppState {
     Stockfish stockfish;
     bool in_menu = true; 
     bool vs_engine = false;
-    int difficulty = 5; // Default difficulty (0-20)
+    int difficulty = 5; 
     Color player_color = Color::WHITE;
     Color turn = Color::WHITE;
     BoardCoordinates selected_sq = {-1, -1};
@@ -50,9 +51,20 @@ struct AppState {
     bool game_over = false;
     std::string status_msg = "Welcome! Choose settings.";
     bool engine_thinking = false;
+    
+    // --- NEW: History ---
+    std::vector<std::string> move_history;
+    bool scroll_to_bottom = false;
 };
 
 AppState g_state;
+
+// Helper to convert coordinates to algebraic notation (e.g., 0,6 -> "a2")
+std::string coordsToString(int x, int y) {
+    char file = 'a' + x;
+    char rank = '8' - y;
+    return std::string{file, rank};
+}
 
 App::App() {
 	std::println("DEBUG: Entering App constructor");
@@ -91,7 +103,7 @@ App::App() {
     ImGui::StyleColorsDark();
     
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ScaleAllSizes(1.5f);
+    style.ScaleAllSizes(1.5f); 
 
     ImGui_ImplSDL3_InitForSDLRenderer(window, renderer);
     ImGui_ImplSDLRenderer3_Init(renderer);
@@ -107,6 +119,10 @@ void App::resetBoard() {
     g_state.selected_sq = {-1, -1};
     g_state.valid_moves.clear();
     g_state.engine_thinking = false; 
+    
+    // Reset History
+    g_state.move_history.clear();
+    g_state.scroll_to_bottom = false;
 
     if (!g_state.in_menu) {
         g_state.status_msg = "White to move";
@@ -319,6 +335,11 @@ void App::run() {
                                 
                                 // Validate safety before moving
                                 if (isMoveSafe(board, from_idx, to_idx, g_state.turn)) {
+                                    // Record Move for History
+                                    std::string move_str = coordsToString(g_state.selected_sq.x, g_state.selected_sq.y) + coordsToString(bx, by);
+                                    g_state.move_history.push_back(move_str);
+                                    g_state.scroll_to_bottom = true;
+
                                     board[to_idx] = std::move(board[from_idx]);
                                     board[to_idx]->setPosition({(int8_t)bx, (int8_t)by});
                                     board[from_idx] = nullptr;
@@ -344,7 +365,6 @@ void App::run() {
                  g_state.engine_thinking = true;
                  std::string fen = generateFEN(board, g_state.turn);
                  g_state.stockfish.setPosition(fen);
-                 // Send increased depth/time based on difficulty if desired
                  g_state.stockfish.go(10, 1000); 
             }
         }
@@ -354,6 +374,11 @@ void App::run() {
             if (move) {
                 std::string m = *move;
                 std::println("DEBUG: Engine moved: {}", m);
+                
+                // Record History
+                g_state.move_history.push_back(m);
+                g_state.scroll_to_bottom = true;
+
                 int fx = m[0] - 'a'; 
                 int fy = 8 - (m[1] - '0'); 
                 int tx = m[2] - 'a';
@@ -376,6 +401,7 @@ void App::run() {
             }
         }
 
+        // GUI Frame Start
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
@@ -393,19 +419,14 @@ void App::run() {
             ImGui::Begin("Game Menu", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoTitleBar);
             
             ImGui::SetWindowFontScale(3.0f);
-            
             const char* title = "CHESS";
             float title_w = ImGui::CalcTextSize(title).x;
             ImGui::SetCursorPosX((menu_w - title_w) * 0.5f);
             ImGui::Text("%s", title);
             
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+            ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
             
-            // --- MENU BODY ---
             ImGui::SetWindowFontScale(2.0f);
-            
             static int mode = 0;
             ImGui::Text("Game Mode:");
             ImGui::RadioButton("Player vs Player", &mode, 0);
@@ -417,20 +438,14 @@ void App::run() {
             ImGui::RadioButton("White", &color_choice, 0);
             ImGui::RadioButton("Black", &color_choice, 1);
             
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+            ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
             
             ImGui::Text("Engine Power: %d", g_state.difficulty);
             ImGui::PushItemWidth(-1);
             ImGui::SliderInt("##difficulty", &g_state.difficulty, 0, 20);
             ImGui::PopItemWidth();
             
-            ImGui::Spacing();
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-            ImGui::Spacing();
+            ImGui::Spacing(); ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing(); ImGui::Spacing();
             
             if (ImGui::Button("START GAME", ImVec2(-1, 80))) {
                 g_state.vs_engine = (mode == 1);
@@ -447,14 +462,13 @@ void App::run() {
                 
                 g_state.in_menu = false;
             }
-            
-            ImGui::SetWindowFontScale(1.0f); 
+            ImGui::SetWindowFontScale(1.0f);
             ImGui::End();
 
         } else {
             // --- IN-GAME HUD ---
             ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(ImVec2(350, 0), ImGuiCond_Always); 
             
             ImGui::Begin("Chess Control", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
             ImGui::SetWindowFontScale(1.5f);
@@ -481,6 +495,29 @@ void App::run() {
                     g_state.stockfish.stop();
                 }
             }
+            
+            // --- HISTORY ---
+            ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
+            ImGui::Text("History:");
+            ImGui::BeginChild("HistoryRegion", ImVec2(0, 200), true);
+            
+            for (size_t i = 0; i < g_state.move_history.size(); ++i) {
+                if (i % 2 == 0) {
+                    // Start of a pair: "1. e2e4"
+                    ImGui::Text("%d. %s", (int)(i/2 + 1), g_state.move_history[i].c_str());
+                } else {
+                    // Second move: "... e7e5" on the same line
+                    ImGui::SameLine();
+                    ImGui::Text("%s", g_state.move_history[i].c_str());
+                }
+            }
+            
+            if (g_state.scroll_to_bottom) {
+                ImGui::SetScrollHereY(1.0f);
+                g_state.scroll_to_bottom = false;
+            }
+            ImGui::EndChild();
+
             ImGui::End();
         }
 

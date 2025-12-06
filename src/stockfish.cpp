@@ -2,10 +2,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
-#include <iostream>
+//#include <iostream>
 #include <cstring>
-#include <array>
-#include <print>
+//#include <array>
+//#include <print>
 
 Stockfish::Stockfish() {
 }
@@ -21,7 +21,6 @@ bool Stockfish::start(const std::string& path) {
     if (pid < 0) return false;
 
     if (pid == 0) {
-        // Child process
         dup2(pipe_in[0], STDIN_FILENO);
         dup2(pipe_out[1], STDOUT_FILENO);
         
@@ -29,13 +28,11 @@ bool Stockfish::start(const std::string& path) {
         close(pipe_out[0]); close(pipe_out[1]);
 
         execlp(path.c_str(), path.c_str(), nullptr);
-        std::exit(1); // Failed
+        std::exit(1);
     } else {
-        // Parent
         close(pipe_in[0]);
         close(pipe_out[1]);
         
-        // Set non-blocking read
         int flags = fcntl(pipe_out[0], F_GETFL, 0);
         fcntl(pipe_out[0], F_SETFL, flags | O_NONBLOCK);
         
@@ -66,7 +63,7 @@ void Stockfish::writeCommand(const std::string& cmd) {
 }
 
 void Stockfish::setPosition(const std::string& fen, const std::vector<std::string>& moves) {
-    accumulator.clear(); // Clear buffer before new search
+    accumulator.clear();
     std::string cmd = "position fen " + fen;
     if (!moves.empty()) {
         cmd += " moves";
